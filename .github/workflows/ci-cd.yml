@@ -78,8 +78,14 @@ jobs:
       - name: Build and push image
         run: |
           IMAGE_TAG=ghcr.io/${{ env.REPO_LOWER }}:latest
-          docker build -t $IMAGE_TAG .
-          docker push $IMAGE_TAG
+          docker buildx build \
+            --push \
+            -t $IMAGE_TAG \
+            --cache-from=type=registry,ref=$IMAGE_TAG:cache \
+            --cache-to=type=registry,ref=$IMAGE_TAG:cache,mode=max \
+            .
+          
+          echo "Image pushed successfully: $IMAGE_TAG"
   deploy-staging:
     needs: docker-build-push
     runs-on: ubuntu-latest
